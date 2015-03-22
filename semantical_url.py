@@ -1,6 +1,26 @@
 """
 semantic URL processing
 
+:Module: Semantic URL Processing
+:Date: 2015-03-21
+:Platforms: Mac, Windows, Unix (Tested under Mac OS X)
+:Version: TBD
+:Authors:
+    - Benjamin Schollnick
+
+
+:Description:
+    Parses, and manipulates semantical URLS.
+
+    Designed for the Gallery application.
+
+**Modules Used (Batteries Included)**:
+
+   * Collections
+   * os
+   * os.path
+   * string
+
 import semantical_url
 reload(semantical_url)
 test = semantical_url.semantical_url()
@@ -17,9 +37,7 @@ print "-"*10
 
 """
 import collections
-import string
-import os
-import os.path
+import copy
 
 def is_int(value_to_test):
     """
@@ -53,69 +71,206 @@ def norm_number(page, max_number=None):
     return page
 
 
-class   semantical_url ():
+
+def pre_slash(path):
+    """
+    Connivence function to ensure prepended slash to a path
+    """
+    if path=='':
+        path = "/"
+        return path
+
+    if path[0] != '/':
+        path = '/' + path
+    return path
+
+def post_slash(path):
+    """
+    Connivence function to ensure postpended slash to a path
+    """
+    if path=='':
+        path = "/"
+        return path
+
+    if path[-1] != '/':
+        path = path +'/'
+    return path
+
+class   semantical_url():
+    """
+        The primary class for semantical manipulation.
+    """
     def __init__(self, pageitems=30):
+        """
+    Args:
+        * pageitems (integer): The maximum number of items in a directory.
+
+    Returns:
+        NA
+        """
         self.slots = collections.OrderedDict([('page', None),
                                               ('item', None),
                                               ('subpage', None),
                                               ('subitem', None)])
         self._current_dir = None
         self.page_items = pageitems
+        self.original_uri = None
 
     def current_page(self):
+        """
+    Args:
+        * None
+
+    Returns:
+        Integer - The current Page being viewed
+        """
         return self.slots['page']
 
     def current_item(self):
+        """
+    Args:
+        * None
+
+    Returns:
+        Integer - The current item being viewed
+        """
         return self.slots['item']
 
     def current_subpage(self):
+        """
+    Args:
+        * None
+
+    Returns:
+        Integer - The current SubPage being viewed
+        """
         return self.slots['subpage']
 
     def current_subitem(self):
+        """
+    Args:
+        * None
+
+    Returns:
+        Integer - The current subitem being viewed
+        """
         return self.slots['subitem']
 
     def current_dir(self):
+        """
+    Args:
+        * None
+
+    Returns:
+        String - The URL/URI before the semantical components
+        """
         return '/'.join(self._current_dir)
 
-    def change_page(self, offset=None, max_page_count=None):
+    def change_page(self, offset=None, max_page_count=None, nom=True):
+        """
+    Args:
+        * offset - Integer - The positive / negative change to apply
+          to the page.
+        * max_page_count - The maximum number of pages available.
+        * nom - None on Max or Min - If max number of pages reached,
+          return none instead of forcing back into range.
+
+    Returns:
+        Boolean - True if successful, False if nom is True and the
+        value was forced back within the boundry.
+        """
         if offset == None:
             return
 
-        self.slots['page'] = norm_number(self.slots['page']+offset,
-                                         max_page_count)
+        if self.slots['page'] == None:
+            self.slots['page'] = 1
 
-    def change_item(self, offset=None, max_item_count=None):
+        if (self.slots['page']+offset > max_page_count) and nom:
+            return None
+        elif (self.slots['page']+offset < 1) and nom:
+            return None
+        else:
+            self.slots['page'] = norm_number(self.slots['page']+offset,
+                                             max_page_count)
+        return True
+
+    def change_item(self, offset=None, max_item_count=None, nom=True):
         """
-change_item's use case is +1 / -1 incrementing through a gallery.
+    Args:
+        * offset - Integer - The positive / negative change to apply
+          to the item.
+        * max_item_count - The maximum number of items available.
+        * nom - None on Max or Min - If max or min number of itemsreached,
+          return none instead of forcing back into range.
 
-The logic works fine for +1 boundary between pages
+    Returns:
+        Boolean - True if successful, False if nom is True and the
+        value was forced back within the boundry.
+
+    change_item's use case is +1 / -1 incrementing through a gallery.
+
+    The logic works fine for +1 boundary between pages
         """
         if offset == None:
             return
+
+        if self.slots['item'] == None:
+            self.slots['item'] = 1
 
         new_item = self.slots['item']+offset
         if new_item > max_item_count:
-            self.change_page(offset=+1)
             new_item -= max_item_count
         elif new_item < 1 and self.current_page() > 1:
-            self.change_page(offset=-1)
+            self.change_page(offset=-1, nom=False)
             if max_item_count != None:
                 new_item += max_item_count
             else:
                 new_item += self.page_items
 
         self.slots['item'] = new_item
-#        self.slots['page'] = norm_number(self.slots['page']+offset,
-#                                         max_item_count)
-
-
+        return True
 
     def return_current_uri(self):
-        uri = "%s/" % self.current_dir()
+        """
+        Args:
+            * None
+
+        Returns:
+            String - Returns the full postpath & semantical components
+
+        *NOTE* may not contain the server & port numbers.  That depends on
+        what was provided to the parser.
+
+        """
+        uri = post_slash("%s" % self.current_dir())
         for uri_part in self.slots.keys():
             if self.slots[uri_part] != None:
                 uri += "%s/" % self.slots[uri_part]
         return uri
+
+    def revert_to_parsed(self):
+        """
+    Force semantical url to be reset back to the previously parsed
+    URI.
+
+    In this manner, you can use this as a URI creator.
+
+    test = semantical_url.semantical_url()
+    test_path = ["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
+    test.parse_uri (test_path)
+    print test.return_current_uri()
+        127.0.0.1:8888/albums/2/3/44/99/
+    test.change_page(offset=2)
+    next_url = test.return_current_uri()
+    print next_url
+        127.0.0.1:8888/albums/4/3/44/99/
+    test.revert_to_parsed()
+    test.change_page(offset=-1)
+    prev_url = test.return_current_uri()
+    print prev_url
+        127.0.0.1:8888/albums/1/3/44/99/
+        """
+        self.parse_uri(self.original_uri)
 
     def parse_uri(self, postpath=None):
         """
@@ -144,6 +299,7 @@ The logic works fine for +1 boundary between pages
                 if self.slots[x] == None:
                     return x
 
+        self.original_uri = copy.deepcopy(postpath)
         path_to_parse = postpath
         self.slots = collections.OrderedDict([('page', None),
                                               ('item', None),
@@ -160,9 +316,6 @@ The logic works fine for +1 boundary between pages
         for removal in self.slots.keys():
             if self.slots[removal] != None:
                 postpath.remove(str(self.slots[removal]))
-
-        for key in self.slots.keys():
-            self.slots[key] = norm_number(self.slots[key])
 
         self._current_dir = postpath
 
