@@ -194,8 +194,8 @@ class   semantical_url:
     Returns:
         * Integer - Which represents the number of items up to the page.
         """
-        return self.pi_to_number(self.slots['subpage'],
-                                 self.slots['subitem'])
+        return self.pi_to_number(self.slots['page'],
+                                 self.slots['item'])
 
     def current_page(self):
         """
@@ -301,6 +301,7 @@ class   semantical_url:
         new_item = self.slots['item']+offset
         if new_item > max_item_count:
             new_item -= max_item_count
+            self.change_page(offset=+1, nom=False)
         elif new_item < 1 and self.current_page() > 1:
             self.change_page(offset=-1, nom=False)
             if max_item_count != None:
@@ -310,6 +311,21 @@ class   semantical_url:
 
         self.slots['item'] = new_item
         return True
+
+    def return_current_uri_page_only(self):
+        """
+        Args:
+            * None
+
+        Returns:
+            String - Returns the full postpath & semantical components
+
+        *NOTE* may not contain the server & port numbers.  That depends on
+        what was provided to the parser.
+
+        """
+        uri = post_slash("%s/%s" % (self.current_dir(), self.slots['page']))
+        return uri
 
     def return_current_uri(self):
         """
