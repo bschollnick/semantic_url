@@ -29,10 +29,13 @@ test_path2 = ["127.0.0.1:8888", "albums", "anime", "0", "3", "44", "99"]
 test.parse_uri (test_path)
 print test.current_dir()
 print test.return_current_uri()
+print test.current_pi_to_number()
+
 print "-"*10
 test.parse_uri (test_path2)
 print test.current_dir()
 print test.return_current_uri()
+print test.return_pi_to_number()
 print "-"*10
 
 """
@@ -52,7 +55,7 @@ def is_int(value_to_test):
     except ValueError:
         return False
 
-def norm_number(page, max_number=None):
+def norm_page_cnt(page, max_number=None):
     """
     Normalize a integer (page).
 
@@ -71,12 +74,11 @@ def norm_number(page, max_number=None):
     return page
 
 
-
 def pre_slash(path):
     """
     Connivence function to ensure prepended slash to a path
     """
-    if path=='':
+    if path == '':
         path = "/"
         return path
 
@@ -88,7 +90,7 @@ def post_slash(path):
     """
     Connivence function to ensure postpended slash to a path
     """
-    if path=='':
+    if path == '':
         path = "/"
         return path
 
@@ -96,14 +98,20 @@ def post_slash(path):
         path = path +'/'
     return path
 
-class   semantical_url():
+class   semantical_url:
     """
         The primary class for semantical manipulation.
     """
-    def __init__(self, pageitems=30):
+    def __init__(self, pageitems=30, subpageitems=21):
         """
     Args:
-        * pageitems (integer): The maximum number of items in a directory.
+        * pageitems (integer): The maximum number of items in a "page" for
+          the directory being viewed.  The Default is 30, which is (for
+          the gallery app, 10 rows (3*10).
+
+        * subpageitems (integer): The maximum number of items in a "subpage" for
+          the archive being viewed.  The Default is 21, which is (for
+          the gallery app, 7 rows (3*7).
 
     Returns:
         NA
@@ -114,7 +122,80 @@ class   semantical_url():
                                               ('subitem', None)])
         self._current_dir = None
         self.page_items = pageitems
+        self.subpage_items = subpageitems
         self.original_uri = None
+
+    def pi_to_number(self, page=1, item=1):
+        """
+    Convert subpage & subitem to a integer
+
+    * if page == 1, then return 0, since the item count is the true # of items
+    * if page == 2, then return, page-1 * items_per_page, since we are
+      returning the # of items on a full page.
+
+    Args:
+        * None
+
+    Returns:
+        * Integer - Which represents the number of items up to the page.
+        """
+        if page > 1:
+            return ((page - 1) * self.page_items) + item
+        else:
+            return 0 + item
+
+    def sub_pi_to_number(self, subpage=1, subitem=1):
+        """
+    Convert subpage & subitem to a integer
+
+    * if page == 1, then return 0, since the item count is the true # of items
+    * if page == 2, then return, page-1 * items_per_page, since we are
+      returning the # of items on a full page.
+
+    Args:
+        * None
+
+    Returns:
+        * Integer - Which represents the number of items up to the page.
+        """
+        if subpage > 1:
+            return ((subpage - 1) * self.subpage_items) + subitem
+        else:
+            return 0 + subitem
+
+    def current_spi_to_number(self):
+        """
+    Convert subpage & subitem to a integer
+
+    * if page == 1, then return 0, since the item count is the true # of items
+    * if page == 2, then return, page-1 * items_per_page, since we are
+      returning the # of items on a full page.
+
+    Args:
+        * None
+
+    Returns:
+        * Integer - Which represents the number of items up to the page.
+        """
+        return self.sub_pi_to_number(self.slots['subpage'],
+                                     self.slots['subitem'])
+
+    def current_pi_to_number(self):
+        """
+    Convert page & item to a integer
+
+    * if page == 1, then return 0, since the item count is the true # of items
+    * if page == 2, then return, page-1 * items_per_page, since we are
+      returning the # of items on a full page.
+
+    Args:
+        * None
+
+    Returns:
+        * Integer - Which represents the number of items up to the page.
+        """
+        return self.pi_to_number(self.slots['subpage'],
+                                 self.slots['subitem'])
 
     def current_page(self):
         """
@@ -122,7 +203,7 @@ class   semantical_url():
         * None
 
     Returns:
-        Integer - The current Page being viewed
+        * Integer - The current Page being viewed
         """
         return self.slots['page']
 
@@ -190,8 +271,8 @@ class   semantical_url():
         elif (self.slots['page']+offset < 1) and nom:
             return None
         else:
-            self.slots['page'] = norm_number(self.slots['page']+offset,
-                                             max_page_count)
+            self.slots['page'] = norm_page_cnt(self.slots['page']+offset,
+                                               max_page_count)
         return True
 
     def change_item(self, offset=None, max_item_count=None, nom=True):
