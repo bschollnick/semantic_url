@@ -156,12 +156,18 @@ class   semantical_url:
         * None
 
     Returns:
-        * Integer - Which represents the number of items up to the page.
+        * Integer - Which represents the number of items on the page.
         """
-        if subpage > 1:
-            return ((subpage - 1) * self.subpage_items) + subitem
+        if subitem == None:
+            subitem = 0
+
+        if subpage == None:
+            return 0
         else:
-            return 0 + subitem
+            if subpage > 1:
+                return ((subpage - 1) * self.subpage_items) + subitem
+            else:
+                return 0 + subitem
 
     def current_spi_to_number(self):
         """
@@ -177,8 +183,11 @@ class   semantical_url:
     Returns:
         * Integer - Which represents the number of items up to the page.
         """
-        return self.sub_pi_to_number(self.slots['subpage'],
-                                     self.slots['subitem'])
+        if self.slots['subpage'] == None:
+            return self.sub_pi_to_number(0, 0)
+        else:
+            return self.sub_pi_to_number(self.slots['subpage'],
+                                         self.slots['subitem'])
 
     def current_pi_to_number(self):
         """
@@ -275,6 +284,35 @@ class   semantical_url:
                                                max_page_count)
         return True
 
+    def change_subpage(self, offset=None, max_page_count=None, nom=True):
+        """
+    Args:
+        * offset - Integer - The positive / negative change to apply
+          to the page.
+        * max_page_count - The maximum number of pages available.
+        * nom - None on Max or Min - If max number of pages reached,
+          return none instead of forcing back into range.
+
+    Returns:
+        Boolean - True if successful, False if nom is True and the
+        value was forced back within the boundry.
+        """
+        if offset == None:
+            return
+
+        if self.slots['subpage'] == None:
+            self.slots['subpage'] = 1
+
+        if (self.slots['subpage']+offset > max_page_count) and nom:
+            return None
+        elif (self.slots['subpage']+offset < 1) and nom:
+            return None
+        else:
+            self.slots['subpage'] = norm_page_cnt(\
+                self.slots['subpage']+offset,
+                max_page_count)
+        return True
+
     def change_item(self, offset=None, max_item_count=None, nom=True):
         """
     Args:
@@ -324,7 +362,8 @@ class   semantical_url:
         what was provided to the parser.
 
         """
-        uri = post_slash("%s/%s" % (self.current_dir(), self.slots['page']))
+        uri = post_slash("%s%s" % (post_slash(self.current_dir()),
+                         self.slots['page']))
         return uri
 
     def return_current_uri(self):
