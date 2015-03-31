@@ -10,20 +10,20 @@ semantic URL processing
 
 
 :Description:
-    Parses, and manipulates semantical URLS.
+    Parses, and manipulates semantic URLS.
 
     Designed for the Gallery application.
 
 **Modules Used (Batteries Included)**:
 
    * Collections
-   * os
-   * os.path
-   * string
+   * copy
 
-import semantical_url
-reload(semantical_url)
-test = semantical_url.semantical_url()
+::code
+
+import semantic_url
+reload(semantic_url)
+test = semantic_url.semantic_url()
 test_path = ["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
 test_path2 = ["127.0.0.1:8888", "albums", "anime", "0", "3", "44", "99"]
 test.parse_uri (test_path)
@@ -98,9 +98,9 @@ def post_slash(path):
         path = path +'/'
     return path
 
-class   semantical_url:
+class   semantic_url:
     """
-        The primary class for semantical manipulation.
+        The primary class for semantic manipulation.
     """
     def __init__(self, pageitems=30, subpageitems=21):
         """
@@ -148,7 +148,8 @@ class   semantical_url:
         """
     Convert subpage & subitem to a integer
 
-    * if page == 1, then return 0, since the item count is the true # of items
+    * if page == 1, then return 0 + items, since the item count is the
+      true # of items
     * if page == 2, then return, page-1 * items_per_page, since we are
       returning the # of items on a full page.
 
@@ -252,7 +253,7 @@ class   semantical_url:
         * None
 
     Returns:
-        String - The URL/URI before the semantical components
+        String - The URL/URI before the semantic components
         """
         return '/'.join(self._current_dir)
 
@@ -356,7 +357,7 @@ class   semantical_url:
             * None
 
         Returns:
-            String - Returns the full postpath & semantical components
+            String - Returns the full postpath & semantic components
 
         *NOTE* may not contain the server & port numbers.  That depends on
         what was provided to the parser.
@@ -372,7 +373,7 @@ class   semantical_url:
             * None
 
         Returns:
-            String - Returns the full postpath & semantical components
+            String - Returns the full postpath & semantic components
 
         *NOTE* may not contain the server & port numbers.  That depends on
         what was provided to the parser.
@@ -386,12 +387,12 @@ class   semantical_url:
 
     def revert_to_parsed(self):
         """
-    Force semantical url to be reset back to the previously parsed
+    Force semantic url to be reset back to the previously parsed
     URI.
 
     In this manner, you can use this as a URI creator.
 
-    test = semantical_url.semantical_url()
+    test = semantic_url.semantic_url()
     test_path = ["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
     test.parse_uri (test_path)
     print test.return_current_uri()
@@ -422,10 +423,10 @@ class   semantical_url:
 
     import gallery
     test =["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
-    gallery.new_decode_semantical_url(test)
+    gallery.new_decode_semantic_url(test)
     ctx={}
     test =["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
-    postpath, ctx["surl"] = gallery.new_decode_semantical_url(test)
+    postpath, ctx["surl"] = gallery.new_decode_semantic_url(test)
         """
         def find_next_empty():
             """
