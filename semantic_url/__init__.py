@@ -17,26 +17,28 @@ semantic URL processing
 **Modules Used (Batteries Included)**:
 
    * Collections
-   * copy
+   * os
+   * os.path
+   * string
 
-::code
+code::
 
-import semantic_url
-reload(semantic_url)
-test = semantic_url.semantic_url()
-test_path = ["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
-test_path2 = ["127.0.0.1:8888", "albums", "anime", "0", "3", "44", "99"]
-test.parse_uri (test_path)
-print test.current_dir()
-print test.return_current_uri()
-print test.current_pi_to_number()
+    import semantic_url
+    reload(semantic_url)
+    test = semantic_url.semantic_url()
+    test_path = ["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
+    test_path2 = ["127.0.0.1:8888", "albums", "anime", "0", "3", "44", "99"]
+    test.parse_uri (test_path)
+    print test.current_dir()
+    print test.return_current_uri()
+    print test.current_pi_to_number()
 
-print "-"*10
-test.parse_uri (test_path2)
-print test.current_dir()
-print test.return_current_uri()
-print test.return_pi_to_number()
-print "-"*10
+    print "-"*10
+    test.parse_uri (test_path2)
+    print test.current_dir()
+    print test.return_current_uri()
+    print test.return_pi_to_number()
+    print "-"*10
 
 """
 import collections
@@ -148,8 +150,7 @@ class   semantic_url:
         """
     Convert subpage & subitem to a integer
 
-    * if page == 1, then return 0 + items, since the item count is the
-      true # of items
+    * if page == 1, then return 0, since the item count is the true # of items
     * if page == 2, then return, page-1 * items_per_page, since we are
       returning the # of items on a full page.
 
@@ -157,7 +158,7 @@ class   semantic_url:
         * None
 
     Returns:
-        * Integer - Which represents the number of items on the page.
+        * Integer - Which represents the number of items up to the page.
         """
         if subitem == None:
             subitem = 0
@@ -351,6 +352,43 @@ class   semantic_url:
         self.slots['item'] = new_item
         return True
 
+    def change_subitem(self, offset=None, max_item_count=None, nom=True):
+        """
+    Args:
+        * offset - Integer - The positive / negative change to apply
+          to the item.
+        * max_item_count - The maximum number of items available.
+        * nom - None on Max or Min - If max or min number of itemsreached,
+          return none instead of forcing back into range.
+
+    Returns:
+        Boolean - True if successful, False if nom is True and the
+        value was forced back within the boundry.
+
+    change_item's use case is +1 / -1 incrementing through a gallery.
+
+    The logic works fine for +1 boundary between pages
+        """
+        if offset == None:
+            return
+
+        if self.slots['subitem'] == None:
+            self.slots['subitem'] = 1
+
+        new_item = self.slots['subitem']+offset
+        if new_item > max_item_count:
+            new_item -= max_item_count
+            self.change_subpage(offset=+1, nom=False)
+        elif new_item < 1 and self.current_subpage() > 1:
+            self.change_subpage(offset=-1, nom=False)
+            if max_item_count != None:
+                new_item += max_item_count
+            else:
+                new_item += self.page_items
+
+        self.slots['subitem'] = new_item
+        return True
+
     def return_current_uri_page_only(self):
         """
         Args:
@@ -365,6 +403,23 @@ class   semantic_url:
         """
         uri = post_slash("%s%s" % (post_slash(self.current_dir()),
                          self.slots['page']))
+        return uri
+
+    def return_current_uri_subpage(self):
+        """
+        Args:
+            * None
+
+        Returns:
+            String - Returns the full postpath & semantic components
+
+        *NOTE* may not contain the server & port numbers.  That depends on
+        what was provided to the parser.
+
+        """
+        uri = post_slash("%s%s/%s/%s" % (post_slash(self.current_dir()),
+                         self.slots['page'], self.slots['item'],
+                         self.slots['subpage']))
         return uri
 
     def return_current_uri(self):
@@ -392,20 +447,22 @@ class   semantic_url:
 
     In this manner, you can use this as a URI creator.
 
-    test = semantic_url.semantic_url()
-    test_path = ["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
-    test.parse_uri (test_path)
-    print test.return_current_uri()
-        127.0.0.1:8888/albums/2/3/44/99/
-    test.change_page(offset=2)
-    next_url = test.return_current_uri()
-    print next_url
-        127.0.0.1:8888/albums/4/3/44/99/
-    test.revert_to_parsed()
-    test.change_page(offset=-1)
-    prev_url = test.return_current_uri()
-    print prev_url
-        127.0.0.1:8888/albums/1/3/44/99/
+    code::
+
+        test = semantic_url.semantic_url()
+        test_path = ["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
+        test.parse_uri (test_path)
+        print test.return_current_uri()
+            127.0.0.1:8888/albums/2/3/44/99/
+        test.change_page(offset=2)
+        next_url = test.return_current_uri()
+        print next_url
+            127.0.0.1:8888/albums/4/3/44/99/
+        test.revert_to_parsed()
+        test.change_page(offset=-1)
+        prev_url = test.return_current_uri()
+        print prev_url
+            127.0.0.1:8888/albums/1/3/44/99/
         """
         self.parse_uri(self.original_uri)
 
@@ -421,12 +478,15 @@ class   semantic_url:
     * subpage   (Archives)
     * subitem   (Archives)
 
-    import gallery
-    test =["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
-    gallery.new_decode_semantic_url(test)
-    ctx={}
-    test =["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
-    postpath, ctx["surl"] = gallery.new_decode_semantic_url(test)
+    code::
+
+        import gallery
+        test =["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
+        gallery.new_decode_semantic_url(test)
+        ctx={}
+        test =["127.0.0.1:8888", "albums", "2", "3", "44", "99"]
+        postpath, ctx["surl"] = gallery.new_decode_semantic_url(test)
+
         """
         def find_next_empty():
             """
