@@ -1,53 +1,59 @@
 """Semantic URL - A Parsing & Manipulation library for creating & using Semantic URLs
 """
 
-classifiers = """\
-Development Status :: 4 - Beta
-Intended Audience :: Developers
-License :: OSI Approved :: MIT License
-Programming Language :: Python
-Topic :: Software Development :: Libraries :: Python Modules
-Operating System :: OS Independent
-Operating System :: MacOS :: MacOS X
-Operating System :: Microsoft :: Windows
-Operating System :: Unix
-Programming Language :: Python
-Programming Language :: Python :: 2.6
-Programming Language :: Python :: 2.7
-"""
+
 try:
     from setuptools import setup, find_packages
 except:
     from disutils.core import setup, find_packages
 
 __title__ = 'Semantic URL'
-__version__ = '1.0'
 __author__ = 'Benjamin Schollnick'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2015 Benjamin Schollnick'
+__module_name__ = __title__
+__version__ = '1.0.10'
+__author__ = 'Benjamin Schollnick'
+__author_email__ = 'Benjamin@schollnick.net'
+__license__ = 'MIT'
+__copyright__ = 'Copyright 2015 Benjamin Schollnick'
+__github_url__ = 'https://github.com/bschollnick/Semantic_URL/tree/master'
+
+__pypi_keywords__ ='semantic', 'URL''
 
 dependencies = []
 
 doclines = __doc__.split("\n")
 
-#
-#   Modelled after requests - https://github.com/kennethreitz/requests/blob/master/setup.py
-#
+__packages__ = ['semantic_url']
+
+__package_data__ = {}
+
 setup(
-    name='Semantic URL',
-    version='1.0.10',
-    description = doclines[0],
+    name=__title__,
+    version=__version__,
+    description=doclines[0],
+    author=__author__,
+    author_email=__author_email__,
+    maintainer=__author__,
+    maintainer_email=__author_email__,
+    url=__github_url__,
+    download_url=__github_url__,
+    py_modules=[__module_name__],
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows :: Windows 7',
+        'Operating System :: Microsoft :: Windows :: Windows XP',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 2'
+    ],
+    include_package_data = True,
+    package_data = __package_data__,
+    packages = __packages__,
+    requires = dependencies,
     long_description = "\n".join(doclines[2:]),
-    author='Benjamin Schollnick',
-    author_email='benjamin@schollnick.net',
-    url='https://github.com/bschollnick/Semantic_URL',
-    license="MIT",
-    maintainer='Benjamin Schollnick',
-    maintainer_email='benjamin@schollnick.net',
-    packages=find_packages(),
-    include_package_data=True,
-    download_url = 'https://github.com/bschollnick/Semantic_URL/tarball/1.0',
-    install_requires=dependencies,
-    keywords = ['semantic', 'URL'],
-    classifiers=filter(None, classifiers.split("\n")),
+    keywords = __pypi_keywords__
+
 )
