@@ -7,7 +7,7 @@ try:
 except:
     from disutils.core import setup, find_packages
 
-__title__ = 'Semantic URL'
+__title__ = 'semantic_url'
 __author__ = 'Benjamin Schollnick'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2015 Benjamin Schollnick'
@@ -19,7 +19,7 @@ __license__ = 'MIT'
 __copyright__ = 'Copyright 2015 Benjamin Schollnick'
 __github_url__ = 'https://github.com/bschollnick/Semantic_URL/tree/master'
 
-__pypi_keywords__ ='semantic', 'URL''
+__pypi_keywords__ ='semantic', 'URL'
 
 dependencies = []
 
