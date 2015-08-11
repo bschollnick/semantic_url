@@ -82,9 +82,7 @@ def pre_slash(path):
     """
     if path == '':
         path = "/"
-        return path
-
-    if path[0] != '/':
+    elif path[0] != '/':
         path = '/' + path
     return path
 
@@ -94,9 +92,7 @@ def post_slash(path):
     """
     if path == '':
         path = "/"
-        return path
-
-    if path[-1] != '/':
+    elif path[-1] != '/':
         path = path +'/'
     return path
 
@@ -495,6 +491,20 @@ class   semantic_url:
             for x in self.slots.keys():
                 if self.slots[x] == None:
                     return x
+
+        if postpath == None:
+            self._current_dir = postpath
+            return
+
+        pp_len = len(postpath)
+        if pp_len > 1:
+            #
+            #   If the last two "slots" are not integers, then
+            #   it's not a semantic URL
+            #
+            if not is_int(postpath[pp_len-1]) or not is_int(postpath[pp_len-2]):
+                self._current_dir = postpath
+                return
 
         self.original_uri = copy.deepcopy(postpath)
         path_to_parse = postpath
