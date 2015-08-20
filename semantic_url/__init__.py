@@ -254,6 +254,18 @@ class   semantic_url:
         """
         return '/'.join(self._current_dir)
 
+    def first_page(self):
+        self.slots['page'] = 1
+
+    def first_item(self):
+        self.slots['item'] = 1
+
+    def first_subpage(self):
+        self.slots['subpage'] = 1
+
+    def first_subitem(self):
+        self.slots['subitem'] = 1
+
     def change_page(self, offset=None, max_page_count=None, nom=True):
         """
     Args:
@@ -436,6 +448,70 @@ class   semantic_url:
                 uri += "%s/" % self.slots[uri_part]
         return uri
 
+    def return_max_subpages(self, total_items=1):
+        subpages, remainder = divmod(total_items, self.subpage_items)
+        if remainder != 0:
+            subpages += 1
+        return subpages
+
+    def return_item_count_on_page(self, page=1, total_items=1):
+        """
+    Return the number of items on page.
+
+    Args:
+        * page = The Page to test for
+        * total_items = the total item count
+
+    Returns:
+        * Integer - Which represents the calculated number of items on page.
+        """
+        up_to_page = ((page - 1) * self.page_items)
+        #   Number of items up to the page in question
+
+        if total_items > up_to_page:
+            #   Remove all the items up to the page in question
+            #
+            count = total_items - up_to_page
+
+        if count >= self.page_items:
+            # The remaining items are greater than the items per page
+            # so the answer is a full page
+            return self.page_items
+        else:
+            #   There are less items than a full page,
+            #
+            return count
+
+    def return_item_count_on_subpage(self, subpage=1, total_items=1):
+        """
+    Return the number of items on page.
+
+    Args:
+        * page = The Page to test for
+        * total_items = the total item count
+
+    Returns:
+        * Integer - Which represents the calculated number of items on page.
+        """
+        up_to_subpage = ((subpage - 1) * self.subpage_items)
+        #   Number of items up to the page in question
+
+        if total_items > up_to_subpage:
+            #   Remove all the items up to the page in question
+            #
+            count = total_items - up_to_subpage
+        else:
+            count = total_items
+
+        if count >= self.subpage_items:
+            # The remaining items are greater than the items per page
+            # so the answer is a full page
+            return self.subpage_items
+        else:
+            #   There are less items than a full page,
+            #
+            return count
+
     def revert_to_parsed(self):
         """
     Force semantic url to be reset back to the previously parsed
@@ -495,16 +571,6 @@ class   semantic_url:
         if postpath == None:
             self._current_dir = postpath
             return
-
-        pp_len = len(postpath)
-        if pp_len > 1:
-            #
-            #   If the last two "slots" are not integers, then
-            #   it's not a semantic URL
-            #
-            if not is_int(postpath[pp_len-1]) or not is_int(postpath[pp_len-2]):
-                self._current_dir = postpath
-                return
 
         self.original_uri = copy.deepcopy(postpath)
         path_to_parse = postpath
